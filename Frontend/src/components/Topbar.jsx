@@ -1,4 +1,6 @@
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Bell,
@@ -6,6 +8,9 @@ import {
   Moon,
   ChevronDown,
   Menu,
+  UserRound,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 
 export default function Topbar({
@@ -18,8 +23,29 @@ export default function Topbar({
   onNavigate,
   onMenuClick,
 }) {
+  const [profileOpen, setProfileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const user = JSON.parse(
+    localStorage.getItem("queuelessUser") || "null"
+  );
+
+  const userName = user?.name || "Ashutosh";
+  const userEmail = user?.email || "Student Account";
+
+  const openProfile = () => {
+    setProfileOpen(false);
+    navigate("/profile");
+  };
+
+  const openLogin = () => {
+    setProfileOpen(false);
+    navigate("/login");
+  };
+
   return (
     <header className="topbar">
+      {/* Mobile Menu */}
       <button
         type="button"
         className="mobile-menu"
@@ -29,6 +55,7 @@ export default function Topbar({
         <Menu size={21} />
       </button>
 
+      {/* Search */}
       <label className="search-box">
         <Search size={21} />
 
@@ -37,13 +64,12 @@ export default function Topbar({
           placeholder="Search services, locations, buildings..."
           value={searchQuery}
           onChange={(event) => {
-            onSearchChange(event.target.value);
+            const value = event.target.value;
+            onSearchChange(value);
 
-            if (event.target.value.trim()) {
-              onNavigate("Services");
-            } else {
-              onNavigate("Dashboard");
-            }
+            onNavigate(
+              value.trim() ? "Services" : "Dashboard"
+            );
           }}
           aria-label="Search campus services"
         />
@@ -55,22 +81,44 @@ export default function Topbar({
       </label>
 
       <div className="top-actions">
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={onThemeToggle}
-          aria-label={`Switch to ${darkMode ? "light" : "dark"} theme`}
-          title="Toggle theme"
+        {/* Professional Theme Switcher */}
+        <div
+          className="theme-switcher"
+          role="group"
+          aria-label="Appearance"
         >
-          <span className={!darkMode ? "selected" : ""}>
-            <Sun size={19} />
-          </span>
+          <button
+            type="button"
+            className={`theme-option ${
+              !darkMode ? "active" : ""
+            }`}
+            onClick={() => {
+              if (darkMode) onThemeToggle();
+            }}
+            aria-label="Switch to light mode"
+            aria-pressed={!darkMode}
+            title="Light mode"
+          >
+            <Sun size={17} strokeWidth={2} />
+          </button>
 
-          <span className={darkMode ? "selected" : ""}>
-            <Moon size={19} />
-          </span>
-        </button>
+          <button
+            type="button"
+            className={`theme-option ${
+              darkMode ? "active" : ""
+            }`}
+            onClick={() => {
+              if (!darkMode) onThemeToggle();
+            }}
+            aria-label="Switch to dark mode"
+            aria-pressed={darkMode}
+            title="Dark mode"
+          >
+            <Moon size={17} strokeWidth={2} />
+          </button>
+        </div>
 
+        {/* Notifications */}
         <button
           type="button"
           className="icon-button notification-button"
@@ -86,15 +134,56 @@ export default function Topbar({
           )}
         </button>
 
-        <button
-          type="button"
-          className="user-button"
-          onClick={() => onNavigate("My Tokens")}
-          aria-label="Open my tokens"
-        >
-          <span className="avatar small-avatar">A</span>
-          <ChevronDown size={16} />
-        </button>
+        {/* Profile Menu */}
+        <div className="topbar-profile">
+          <button
+            type="button"
+            className="user-button"
+            onClick={() =>
+              setProfileOpen((current) => !current)
+            }
+            aria-label="Open account menu"
+            aria-expanded={profileOpen}
+          >
+            <span className="avatar small-avatar">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+
+            <ChevronDown
+              size={16}
+              className={profileOpen ? "rotated" : ""}
+            />
+          </button>
+
+          {profileOpen && (
+            <div className="topbar-profile-dropdown">
+              <div className="topbar-profile-details">
+                <strong>{userName}</strong>
+                <small>{userEmail}</small>
+                <small>QueueLess Campus</small>
+              </div>
+
+              <button type="button" onClick={openProfile}>
+                <UserRound size={17} />
+                My Profile
+              </button>
+
+              <button type="button" onClick={openLogin}>
+                <LogIn size={17} />
+                Sign In / Create Account
+              </button>
+
+              <button
+                type="button"
+                className="logout-button"
+                onClick={openLogin}
+              >
+                <LogOut size={17} />
+                Log Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 
 import Sidebar from "./components/Sidebar";
@@ -13,7 +14,14 @@ import TokenSection from "./components/TokenSection";
 import { services, dashboardStats } from "./data/services";
 import { useQueue } from "./hooks/useQueue";
 
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [activePage, setActivePage] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(true);
@@ -21,11 +29,14 @@ function App() {
   const [toast, setToast] = useState("");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const {
-    tokens,
-    joinQueue,
-    cancelToken,
-  } = useQueue();
+  // Read the latest saved account on every render.
+  const savedUser = JSON.parse(
+    localStorage.getItem("queuelessUser") || "null"
+  );
+
+  const userName = savedUser?.name || "Ashutosh";
+
+  const { tokens, joinQueue, cancelToken } = useQueue();
 
   const filteredServices = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -49,10 +60,9 @@ function App() {
 
     window.clearTimeout(window.__queueLessToastTimer);
 
-    window.__queueLessToastTimer = window.setTimeout(
-      () => setToast(""),
-      3000
-    );
+    window.__queueLessToastTimer = window.setTimeout(() => {
+      setToast("");
+    }, 3000);
   };
 
   const handleJoinQueue = (service) => {
@@ -68,16 +78,33 @@ function App() {
   };
 
   const handleNavigation = (page) => {
-    setActivePage(page);
     setMobileSidebarOpen(false);
+
+    if (page === "My Profile") {
+      navigate("/profile");
+      return;
+    }
+
+    if (page === "Sign In") {
+      navigate("/login");
+      return;
+    }
+
+    if (page === "Log Out") {
+      navigate("/login");
+      return;
+    }
+
+    setActivePage(page);
 
     if (page === "Dashboard") {
       setSearchQuery("");
+      navigate("/");
     }
   };
 
   const pageTitles = {
-    Dashboard: "Welcome Back, Ashutosh!",
+    Dashboard: `Welcome Back, ${userName}!`,
     Services: "Campus Services",
     "Live Queue": "Live Queue Status",
     "My Tokens": "My Tokens",
@@ -87,14 +114,26 @@ function App() {
     "Help Center": "How Can We Help?",
   };
 
+  // Authentication-related pages
+  if (location.pathname === "/login") {
+    return <Login />;
+  }
+
+  if (location.pathname === "/signup") {
+    return <Signup />;
+  }
+
+  if (location.pathname === "/profile") {
+    return <Profile />;
+  }
+
   return (
     <div
       className={`app-shell ${darkMode ? "theme-dark" : "theme-light"}`}
       style={{
-        backgroundImage: `url("${new URL(
-          "./assets/background.png",
-          import.meta.url
-        ).href}")`,
+        backgroundImage: `url("${
+          new URL("./assets/background.png", import.meta.url).href
+        }")`,
       }}
     >
       <Sidebar
@@ -313,6 +352,7 @@ function App() {
           {toast}
 
           <button
+            type="button"
             onClick={() => setToast("")}
             aria-label="Dismiss"
           >

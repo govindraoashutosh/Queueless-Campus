@@ -33,6 +33,14 @@ export default function Sidebar({
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
 
+  // Read the currently saved account
+  const user = JSON.parse(
+    localStorage.getItem("queuelessUser") || "null"
+  );
+
+  const userName = user?.name || "Ashutosh";
+  const firstLetter = userName.charAt(0).toUpperCase();
+
   const handleNavigation = (label) => {
     onNavigate(label);
     setProfileOpen(false);
@@ -47,6 +55,7 @@ export default function Sidebar({
       className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}
       aria-label="Main navigation"
     >
+      {/* Brand */}
       <div className="sidebar-header">
         <div className="brand">
           <div className="brand-logo">
@@ -69,6 +78,7 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* Navigation */}
       <nav className="navigation">
         <p className="nav-heading">MENU</p>
 
@@ -94,21 +104,21 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Profile stays at the bottom */}
+      {/* Profile at the bottom */}
       <div className="sidebar-bottom">
         <div className="sidebar-profile">
           <button
             type="button"
             className="profile-summary"
             onClick={() =>
-              setProfileOpen((current) => !current)
+              setProfileOpen((open) => !open)
             }
             aria-expanded={profileOpen}
           >
-            <span className="avatar">A</span>
+            <span className="avatar">{firstLetter}</span>
 
             <span className="profile-info">
-              <strong>Ashutosh</strong>
+              <strong>{userName}</strong>
               <small>Student Account</small>
             </span>
 
@@ -122,18 +132,40 @@ export default function Sidebar({
 
           {profileOpen && (
             <div className="profile-dropdown">
+              <div className="profile-details">
+                <strong>{userName}</strong>
+                <small>
+                  {user?.email || "Student Account"}
+                </small>
+                <small>QueueLess Campus</small>
+              </div>
+
               <button
                 type="button"
-                onClick={() => handleNavigation("My Tokens")}
+                onClick={() =>
+                  handleNavigation("My Profile")
+                }
               >
-                My Tokens
+                My Profile
               </button>
 
               <button
                 type="button"
-                onClick={() => handleNavigation("Help Center")}
+                onClick={() =>
+                  handleNavigation("Sign In")
+                }
               >
-                Help Center
+                Sign In / Create Account
+              </button>
+
+              <button
+                type="button"
+                className="logout-button"
+                onClick={() =>
+                  handleNavigation("Log Out")
+                }
+              >
+                Log Out
               </button>
             </div>
           )}
